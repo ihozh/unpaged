@@ -164,8 +164,12 @@ my-lesson/
   simple animation; neither needs extra files. Use video files rather than YouTube embeds,
   which may not play in the sandbox.
 - Limits: 25 MB per media file, 200 MB per deck, 500 pages.
-- Speaker notes can go in `<aside class="notes">` with `.notes{display:none}`. They are sent
-  to students along with the page, so never put quiz answers in them.
+- Speaker notes go in `<aside class="notes">` inside the page's `<section>`. Unpaged takes
+  them out of the page when the deck is added and shows them only on the instructor's
+  screen during class; students never receive them. Use plain formatting (paragraphs,
+  lists, bold): links, images and styles are dropped. At most 20,000 characters a page.
+  Keep `.notes{display:none}` in the deck's styles so the file also looks right when
+  opened on its own.
 
 ## Workflow
 

@@ -11,6 +11,7 @@ const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I, O, 0, 1
 const MAX_QUIZZES = 20; // per page
 const MAX_OPTIONS = 12; // per quiz
 const MAX_VOTERS = 2000; // per page
+const MAX_NOTES_CHARS = 20_000; // speaker notes, per page
 const DECK_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 const MIME = {
@@ -56,6 +57,8 @@ export class Directory extends DurableObject {
 // A quiz page is stored without its answers. The answer key (which options are correct, and
 // the explanation) is kept apart from the page and is sent to students only once the
 // instructor reveals it, or once the deck is released.
+//
+// Speaker notes are also stored apart from the page, and are only ever sent to the instructor.
 //
 // Deck status: "draft" (uploaded, not taught) -> "live" (being taught) -> "released"
 // (taught; students may browse it freely).
@@ -120,15 +123,19 @@ export class Course extends DurableObject {
       if (pages.some((p) => typeof p.html !== "string" || p.html.length > MAX_PAGE_CHARS)) return text("page too large", 413);
       const keys = pages.map((p) => quizKey(p.quiz));
       if (keys.includes(null)) return text("bad quiz", 400);
+      const notes = pages.map((p) => p.notes ?? "");
+      if (notes.some((n) => typeof n !== "string" || n.length > MAX_NOTES_CHARS)) return text("notes too long", 413);
       for (let i = 0; i < pages.length; i++) {
         await store.put(`page:${body.id}:${i}`, pages[i].html);
         if (keys[i].length) await store.put(`quiz:${body.id}:${i}`, keys[i]);
+        if (notes[i]) await store.put(`notes:${body.id}:${i}`, notes[i]);
       }
       decks.push({
         id: body.id,
         title: String(body.title || "Untitled deck").slice(0, 200),
         pages: pages.map((p, i) => String(p.title || `Page ${i + 1}`).slice(0, 200)),
         status: "draft",
+        notes: notes.some(Boolean),
         created: Date.now(),
       });
       await store.put("decks", decks);
@@ -211,12 +218,14 @@ export class Course extends DurableObject {
 
     if (rest === "" && method === "GET") {
       if (!canRead) return text("this deck is not open yet", 403);
-      return Response.json({ id, title: deck.title, status: deck.status, pages: deck.pages });
+      const out = { id, title: deck.title, status: deck.status, pages: deck.pages };
+      if (instructor) out.notes = Boolean(deck.notes); // whether any page has speaker notes
+      return Response.json(out);
     }
 
     if (rest === "" && method === "DELETE") {
       if (live?.deckId === id) return text("end the class first", 409);
-      for (const prefix of [`page:${id}:`, `quiz:${id}:`, `votes:${id}:`, `asset:${id}/`, `chunk:${id}/`]) {
+      for (const prefix of [`page:${id}:`, `quiz:${id}:`, `notes:${id}:`, `votes:${id}:`, `asset:${id}/`, `chunk:${id}/`]) {
         for (;;) {
           const keys = [...(await store.list({ prefix, limit: 128 })).keys()];
           if (!keys.length) break;
@@ -251,6 +260,14 @@ export class Course extends DurableObject {
         if (out.revealed) out.results = await this.quizResults(id, n);
       }
       return Response.json(out, { headers: { "Cache-Control": "no-store" } });
+    }
+
+    // Speaker notes for a page. Instructor only, whatever the deck's status.
+    const notesPage = rest.match(/^\/pages\/(\d+)\/notes$/);
+    if (notesPage && method === "GET") {
+      if (!instructor) return text("instructor only", 403);
+      const notes = (await store.get(`notes:${id}:${notesPage[1]}`)) || "";
+      return new Response(notes, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
     }
 
     if (rest === "/start" && method === "POST") {

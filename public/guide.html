@@ -132,6 +132,21 @@
       <li>Up to 12 options per quiz and 20 quizzes per page. If more than one option is marked <code>data-correct</code>, each of them counts as correct; students still select one.</li>
     </ul>
 
+    <h3 id="notes">Speaker notes</h3>
+    <p>Put what you plan to say on a page in an <code>&lt;aside class="notes"&gt;</code> inside that page's <code>&lt;section&gt;</code>.</p>
+<pre><code>&lt;section class="slide"&gt;
+  &lt;h2&gt;What photosynthesis needs&lt;/h2&gt;
+  ...
+  &lt;aside class="notes"&gt;
+    &lt;p&gt;Ask the class what a plant "eats" before opening the cards.&lt;/p&gt;
+  &lt;/aside&gt;
+&lt;/section&gt;</code></pre>
+    <ul>
+      <li>Notes appear next to the page on your screen while you teach. <strong>Hide notes</strong> in the top bar, or the <kbd>N</kbd> key, puts them away, which you will want if your own screen is on the projector.</li>
+      <li>Students never receive them, during the class or after it. Notes are taken out of the page when you add the deck, so they cannot be found by inspecting the page.</li>
+      <li>Plain formatting is kept: paragraphs, lists, bold and italics. Links, images and styles are dropped. Up to 20,000 characters a page.</li>
+    </ul>
+
     <h3>Your own styles and interactions</h3>
     <p>Pages follow the Social Shields look by default, so a deck works with no styles at all. Anything you put in a <code>&lt;style&gt;</code> or <code>&lt;script&gt;</code> in the <code>&lt;head&gt;</code> is included on every page, so you can restyle the deck or add your own interactions such as drag-and-drop or simulations.</p>
     <p>Each page loads fresh when it is opened. A page cannot read what a student did on an earlier page.</p>
@@ -169,6 +184,7 @@
     <ol>
       <li>Open the course and select <strong>Start class</strong> on the deck. Students who have the course open switch to your first page at once.</li>
       <li>Turn pages with <strong>Previous</strong> and <strong>Next</strong>, the left and right arrow keys, or by picking a page from the list.</li>
+      <li>If the deck has <a href="#notes">speaker notes</a>, they show beside the page. Only you see them.</li>
       <li>On a page with a <a href="#quiz">quiz</a>, watch the count of students who have answered, then select <strong>Show answers</strong>.</li>
       <li>Select <strong>End class</strong> when you finish. Students keep the page they were on and can now move through the whole deck themselves.</li>
     </ol>

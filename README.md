@@ -21,7 +21,7 @@ Set the instructor passcode once (use a long random one): `npx wrangler secret p
 
 ## Deck format
 
-One HTML file, optionally with media files next to it. Each page is a `<section class="slide">`. A clickable knowledge point is a `.kp`; its details go in a nested `.detail`, which opens in a dialog on click. A quiz is a `.quiz` holding `.option` elements, the right one marked `data-correct`, with an optional `.explain`. Media is referenced by relative path. Add a deck as a single `.html`, a `.zip`, or a folder. `public/guide.html` has the full description and `public/sample-deck.html` is a working example.
+One HTML file, optionally with media files next to it. Each page is a `<section class="slide">`. A clickable knowledge point is a `.kp`; its details go in a nested `.detail`, which opens in a dialog on click. A quiz is a `.quiz` holding `.option` elements, the right one marked `data-correct`, with an optional `.explain`. Speaker notes for a page go in an `<aside class="notes">`. Media is referenced by relative path. Add a deck as a single `.html`, a `.zip`, or a folder. `public/guide.html` has the full description and `public/sample-deck.html` is a working example.
 
 ## Generating decks with Claude
 
@@ -35,6 +35,7 @@ One HTML file, optionally with media files next to it. Each page is a `<section 
 - Deck status goes `draft` → `live` → `released`. Students can fetch a deck's pages only once it is `released`. While it is `live` they are sent the current page and nothing else.
 - Students only read, with one exception: answering a quiz on the live page. Every other write, including page turns, is an HTTP request carrying the instructor passcode, which the Worker checks before anything reaches a Durable Object.
 - Quiz answers are taken out of the page when a deck is added and stored apart from it. Students receive them when the instructor shows the answers, or once the deck is released. Answers are counted per anonymous browser id; the instructor's screen shows only how many have answered until the reveal.
+- Speaker notes (`<aside class="notes">`) are taken out of the page in the same way. Only a request with the instructor passcode can fetch them, whatever the deck's status, and they are shown beside the page while teaching.
 - The instructor's browser splits a deck into pages before uploading. Pages are shown in a sandboxed iframe, so deck scripts cannot touch the surrounding app.
 - The app chrome uses the shared Social Shields stylesheet (`https://socialshields.org/brand.css`).
 

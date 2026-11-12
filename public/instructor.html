@@ -127,12 +127,17 @@
       <span class="stat">Course code <b id="room-code"></b></span>
       <span class="stat">Students online <b id="count">0</b></span>
       <span class="stat"><span class="dot" id="dot"></span><span id="conn">Connecting</span></span>
+      <button class="btn-quiet" id="notes-toggle" title="Show or hide your speaker notes (N)" hidden>Hide notes</button>
       <button class="ss-btn" id="end">End class</button>
     </div>
     <nav class="page-list" id="page-list" aria-label="Pages"></nav>
     <div class="stage-wrap">
       <iframe class="stage" id="stage" sandbox="allow-scripts" title="Current page"></iframe>
     </div>
+    <aside class="notes" id="notes" aria-label="Speaker notes" hidden>
+      <div class="notes-head">Speaker notes <span>only you see these</span></div>
+      <div class="notes-body" id="notes-body"></div>
+    </aside>
     <div class="nav">
       <button class="ss-btn ss-btn--ghost" id="prev">← Previous</button>
       <span class="pos" id="pos"></span>

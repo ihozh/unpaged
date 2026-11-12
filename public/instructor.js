@@ -6,6 +6,8 @@ const $ = (id) => document.getElementById(id);
 const MAX_PAGE_CHARS = 900_000;
 const MAX_ASSET_BYTES = 25 * 1024 * 1024;
 const MAX_DECK_BYTES = 200 * 1024 * 1024;
+const MAX_NOTES_CHARS = 20_000;
+const NOTES_KEY = "unpaged.notes"; // "off" once you hide the notes panel
 const PASSCODE_KEY = "unpaged.passcode";
 
 const code = (new URLSearchParams(location.search).get("c") || "").toUpperCase() || null;
@@ -16,9 +18,14 @@ try {
 
 let course = null;
 let pending = null; // deck chosen in the "Add a deck" form: { text, assets }
-let room = null; // live class: { deckId, pages: [titles], index, quiz }
+let room = null; // live class: { deckId, pages: [titles], index, quiz, hasNotes }
 // room.quiz, when the page has one: { answered, revealed, results: [per quiz] }
 const pageCache = new Map();
+const notesCache = new Map();
+let notesOn = true;
+try {
+  notesOn = localStorage.getItem(NOTES_KEY) !== "off";
+} catch {}
 let ws = null;
 let retryMs = 1000;
 let pingTimer = null;
@@ -151,6 +158,8 @@ async function chooseDeck(read, fallbackTitle) {
     if (tooBig >= 0) {
       return failDeck(`Page ${tooBig + 1} is too large. Put images and other media in separate files next to the deck instead of embedding them.`);
     }
+    const longNotes = deck.pages.findIndex((p) => (p.notes || "").length > MAX_NOTES_CHARS);
+    if (longNotes >= 0) return failDeck(`The speaker notes on page ${longNotes + 1} are too long. Keep them under ${MAX_NOTES_CHARS.toLocaleString()} characters a page.`);
     let total = 0;
     for (const [path, blob] of assets) {
       if (blob.size > MAX_ASSET_BYTES) return failDeck(`“${path}” is ${mb(blob.size)}. Each media file can be at most ${mb(MAX_ASSET_BYTES)}.`);
@@ -160,7 +169,11 @@ async function chooseDeck(read, fallbackTitle) {
 
     pending = { pages: deck.pages, assets };
     $("deck-name").value = deck.title || fallbackTitle;
-    $("deck-info").textContent = plural(deck.pages.length, "page") + (assets.size ? `, ${plural(assets.size, "media file")} (${mb(total)})` : "");
+    const withNotes = deck.pages.filter((p) => p.notes).length;
+    $("deck-info").textContent =
+      plural(deck.pages.length, "page") +
+      (withNotes ? `, speaker notes on ${withNotes}` : "") +
+      (assets.size ? `, ${plural(assets.size, "media file")} (${mb(total)})` : "");
     $("add").disabled = false;
   } catch (err) {
     failDeck(err.message || "Could not read this deck.");
@@ -228,8 +241,11 @@ async function startClass(d) {
   }
   const live = await started.json();
   const deck = await (await api(`/${code}/decks/${d.id}`)).json();
-  room = { deckId: d.id, pages: deck.pages, index: -1 };
+  room = { deckId: d.id, pages: deck.pages, index: -1, hasNotes: Boolean(deck.notes) };
   pageCache.clear();
+  notesCache.clear();
+  $("notes-toggle").hidden = !room.hasNotes;
+  layoutNotes();
 
   $("room-title").textContent = deck.title;
   $("room-code").textContent = code;
@@ -254,6 +270,63 @@ async function pageHtml(index) {
   return pageCache.get(index);
 }
 
+// Speaker notes. They are never part of the page students get: this is a separate,
+// instructor-only request.
+async function pageNotes(index) {
+  if (!notesCache.has(index)) {
+    const res = await api(`/${code}/decks/${room.deckId}/pages/${index}/notes`);
+    if (!res.ok) return "";
+    notesCache.set(index, await res.text());
+  }
+  return notesCache.get(index);
+}
+
+// Notes come from the deck file, so only plain formatting is kept: no attributes, no scripts,
+// nothing that loads or links anywhere.
+const NOTE_TAGS = new Set("P BR HR UL OL LI STRONG B EM I U S MARK CODE PRE BLOCKQUOTE SUB SUP SPAN DIV H1 H2 H3 H4 H5 H6 TABLE THEAD TBODY TR TH TD".split(" "));
+function cleanNotes(html) {
+  const out = document.createDocumentFragment();
+  const copy = (from, to) => {
+    for (const node of from.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) to.append(node.textContent);
+      if (node.nodeType !== Node.ELEMENT_NODE || /^(script|style|template)$/i.test(node.tagName)) continue;
+      const el = NOTE_TAGS.has(node.tagName) ? document.createElement(node.tagName) : null;
+      if (el) to.append(el);
+      copy(node, el || to);
+    }
+  };
+  copy(new DOMParser().parseFromString(html, "text/html").body, out);
+  return out;
+}
+
+function layoutNotes() {
+  const on = Boolean(room?.hasNotes) && notesOn;
+  $("room").classList.toggle("has-notes", on);
+  $("notes").hidden = !on;
+  $("notes-toggle").textContent = notesOn ? "Hide notes" : "Show notes";
+  $("notes-toggle").setAttribute("aria-pressed", String(notesOn));
+}
+
+async function showNotes(index) {
+  if (!room.hasNotes) return;
+  const html = await pageNotes(index);
+  if (room?.index !== index) return;
+  const body = $("notes-body");
+  body.classList.toggle("none", !html);
+  body.replaceChildren(html ? cleanNotes(html) : "No notes for this page.");
+  $("notes").scrollTop = 0;
+}
+
+function toggleNotes() {
+  if (!room?.hasNotes) return;
+  notesOn = !notesOn;
+  try {
+    localStorage.setItem(NOTES_KEY, notesOn ? "on" : "off");
+  } catch {}
+  layoutNotes();
+}
+$("notes-toggle").addEventListener("click", toggleNotes);
+
 async function go(index, publish = true) {
   if (!room || index < 0 || index >= room.pages.length || index === room.index) return;
   room.index = index;
@@ -266,6 +339,7 @@ async function go(index, publish = true) {
   });
   // Students first; your own preview loads alongside.
   const sent = publish ? api(`/${code}/goto`, { method: "POST", body: JSON.stringify({ index }) }) : null;
+  showNotes(index).catch(() => {});
   const html = await pageHtml(index);
   if (room?.index !== index) return;
   room.quiz = null;
@@ -326,7 +400,9 @@ function onKey(key) {
   if (key === "ArrowLeft" || key === "PageUp") go(room.index - 1);
 }
 document.addEventListener("keydown", (e) => {
-  if (!e.target.closest("input, textarea")) onKey(e.key);
+  if (e.target.closest("input, textarea")) return;
+  onKey(e.key);
+  if (room && (e.key === "n" || e.key === "N") && !e.metaKey && !e.ctrlKey && !e.altKey) toggleNotes();
 });
 // Arrow keys pressed while focus is inside the page iframe.
 window.addEventListener("message", (e) => {

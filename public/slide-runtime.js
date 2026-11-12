@@ -157,6 +157,18 @@ export function parseDeck(text, hasMedia = false) {
     });
   const keys = sections.length ? sections.map(takeKey) : [takeKey(doc.body)];
 
+  // Speaker notes leave the page the same way: they are stored apart from it and only the
+  // instructor can fetch them.
+  const takeNotes = (root) =>
+    [...root.querySelectorAll("aside.notes")]
+      .map((n) => {
+        n.remove();
+        return n.innerHTML.trim();
+      })
+      .filter(Boolean)
+      .join("\n");
+  const notes = sections.length ? sections.map(takeNotes) : [takeNotes(doc.body)];
+
   const bodies = sections.length
     ? sections.map((s) => {
         s.classList.add("slide");
@@ -169,6 +181,7 @@ export function parseDeck(text, hasMedia = false) {
     pages: bodies.map((body, i) => ({
       title: sections[i]?.querySelector("h1, h2, h3")?.textContent.trim() || `Page ${i + 1}`,
       quiz: keys[i].length ? keys[i] : undefined,
+      notes: notes[i] || undefined,
       html:
         `<!doctype html><html lang="en"><head><meta charset="utf-8">` +
         `<meta name="viewport" content="width=device-width, initial-scale=1">` +
