@@ -1,22 +1,22 @@
 ---
-name: freeboard-deck
-description: Create or convert lecture slides into a Freeboard deck, the interactive HTML slide format used in class in place of PowerPoint or PDF. Use this skill whenever the user asks for slides, a deck, courseware, a lecture or lesson for Freeboard, wants a PPT, PDF, chapter or notes turned into an interactive HTML deck, or asks to add knowledge-point cards, quiz questions, animation or media to a deck that will be shown in Freeboard, even if they only say "make the slides for module 5" in a project that uses Freeboard.
+name: unpaged-deck
+description: Create or convert lecture slides into an Unpaged deck, the interactive HTML slide format used in class in place of PowerPoint or PDF. Use this skill whenever the user asks for slides, a deck, courseware, a lecture or lesson for Unpaged, wants a PPT, PDF, chapter or notes turned into an interactive HTML deck, or asks to add knowledge-point cards, quiz questions, animation or media to a deck that will be shown in Unpaged, even if they only say "make the slides for module 5" in a project that uses Unpaged.
 ---
 
-# Freeboard deck
+# Unpaged deck
 
-Freeboard shows an HTML deck in class. The instructor turns the pages and every student's
+Unpaged shows an HTML deck in class. The instructor turns the pages and every student's
 screen follows; students interact with the current page on their own device, and can browse
-the whole deck after class. Your job is to produce a deck that Freeboard can load and that
+the whole deck after class. Your job is to produce a deck that Unpaged can load and that
 uses its interactions well.
 
 A deck is **one HTML file plus optional media files**, delivered as a folder and a `.zip` of it.
 
-## How Freeboard loads a deck (this explains most of the rules)
+## How Unpaged loads a deck (this explains most of the rules)
 
-When a deck is added, Freeboard splits it. Each page becomes its own small document made of:
-Freeboard's base stylesheet, then the deck's whole `<head>`, then **one** `<section>`, then
-Freeboard's script for cards and quizzes. That document runs in a sandboxed frame.
+When a deck is added, Unpaged splits it. Each page becomes its own small document made of:
+Unpaged's base stylesheet, then the deck's whole `<head>`, then **one** `<section>`, then
+Unpaged's script for cards and quizzes. That document runs in a sandboxed frame.
 
 Consequences:
 
@@ -27,7 +27,7 @@ Consequences:
 - **A page never sees the other pages.** Scripts must work when the document holds a single
   section: wait for `DOMContentLoaded`, and check that an element exists before using it.
   Do not write slide navigation, keyboard paging, progress bars or "slide 3 of 20" logic.
-  Freeboard does the paging. A page number, if wanted, is plain text in the section.
+  Unpaged does the paging. A page number, if wanted, is plain text in the section.
 - **Nothing carries over between pages**, and `localStorage`, `sessionStorage` and cookies
   are not available in the sandbox. Each page starts fresh every time it is opened.
 - **Links do not leave the page.** Popups and top-level navigation are blocked, so write a
@@ -95,7 +95,7 @@ detail in a dialog.
 
 ## Quiz questions
 
-Freeboard runs multiple-choice questions live: students pick an option, the instructor sees
+Unpaged runs multiple-choice questions live: students pick an option, the instructor sees
 how many have answered and then shows the answers, and every screen marks the correct
 option, the share of students on each option, and the explanation.
 
@@ -120,7 +120,7 @@ option, the share of students on each option, and the explanation.
   discussion page (question as text, a hint in a `.kp` card).
 - Two to twelve options; four is typical. Up to 20 quizzes on a page, though one per page is
   clearest, since the instructor reveals a whole page at once.
-- Freeboard removes `data-correct` and `.explain` from what students receive until the
+- Unpaged removes `data-correct` and `.explain` from what students receive until the
   reveal. Do not repeat the answer elsewhere on the page (a hidden span, a comment, a script
   variable), or students can find it.
 - Put a quiz after every block of new material, roughly every 6 to 10 pages, unless the user
@@ -128,7 +128,7 @@ option, the share of students on each option, and the explanation.
 
 ## Styling
 
-Freeboard's base stylesheet already styles `h1`, `h2`, `h3`, `p`, `li`, `.kps`, `.kp`,
+Unpaged's base stylesheet already styles `h1`, `h2`, `h3`, `p`, `li`, `.kps`, `.kp`,
 `.quiz`, `.option` and the dialog, in the Social Shields look (green headings, neutral
 surfaces). A deck with no CSS at all looks finished, so start there and add CSS only for
 what the lesson needs: a diagram layout, a formula block, a two-column page.
@@ -139,7 +139,7 @@ what the lesson needs: a diagram layout, a formula block, a two-column page.
 - If you do build a fixed-size slide canvas, size everything in the deck, including
   `.option`, `.fb-notes` and `.fb-explain`, in the same units, or the quiz will look
   mismatched.
-- Class names starting with `fb-` belong to Freeboard. Do not define your own.
+- Class names starting with `fb-` belong to Unpaged. Do not define your own.
 - Respect `prefers-reduced-motion` for animation.
 
 ## Media and animation

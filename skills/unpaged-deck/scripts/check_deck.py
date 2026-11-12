@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Check a Freeboard deck folder and package it as a zip.
+"""Check an Unpaged deck folder and package it as a zip.
 
 Usage: python3 check_deck.py path/to/deck-folder [--no-zip]
 
-Errors are things Freeboard will drop, reject or break on. Warnings need a look.
+Errors are things Unpaged will drop, reject or break on. Warnings need a look.
 Exits 1 if there are errors; otherwise writes <folder>.zip next to the folder.
 """
 import os
@@ -16,7 +16,7 @@ MAX_PAGE_CHARS = 900_000
 MAX_ASSET = 25 * 1024 * 1024
 MAX_DECK = 200 * 1024 * 1024
 MAX_PAGES = 500
-BASE_OVERHEAD = 9_000  # Freeboard's own styles and script, added to every page
+BASE_OVERHEAD = 9_000  # Unpaged's own styles and script, added to every page
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
 
 
@@ -70,16 +70,16 @@ class Deck(HTMLParser):
                 self.page["heading"] = ""
                 self.page["_h"] = True
             if tag == "iframe":
-                self.warnings.append(f"line {line}: embedded frames (YouTube and similar) may not play in Freeboard. Use a video file.")
+                self.warnings.append(f"line {line}: embedded frames (YouTube and similar) may not play in Unpaged. Use a video file.")
             if tag == "a" and a.get("href", "").startswith(("http", "//")):
-                self.warnings.append(f"line {line}: links do not open from a Freeboard page. Show the URL as text.")
+                self.warnings.append(f"line {line}: links do not open from an Unpaged page. Show the URL as text.")
         for name in ("src", "href", "poster", "data"):
             v = a.get(name)
             if v and not (tag == "a"):
                 self.refs.append((v, line))
         for c in classes:
             if c.startswith("fb-"):
-                self.errors.append(f"line {line}: class '{c}' is reserved for Freeboard.")
+                self.errors.append(f"line {line}: class '{c}' is reserved for Unpaged.")
         if tag not in VOID:
             self.stack.append((tag, classes))
 
@@ -169,7 +169,7 @@ def main():
     m = re.search(r"<head[^>]*>(.*?)</head>", text, re.S | re.I)
     head = m.group(1) if m else ""
     if re.search(r"\b(localStorage|sessionStorage|document\.cookie)\b", text):
-        errors.append("localStorage, sessionStorage and cookies are not available in a Freeboard page.")
+        errors.append("localStorage, sessionStorage and cookies are not available in an Unpaged page.")
     if re.search(r"querySelectorAll\(\s*['\"](section|\.slide|section\.slide)['\"]", text):
         warnings.append("a script collects all slides. Each page holds one section, so deck-wide navigation or counters will not work; remove them.")
     if re.search(r"data:(image|video|audio|font)/[\w.+-]+;base64,", text):
@@ -202,7 +202,7 @@ def main():
             rel = os.path.relpath(full, folder).replace(os.sep, "/")
             if rel == name or rel.lower().endswith((".html", ".htm")):
                 if rel != name:
-                    warnings.append(f"{rel}: other HTML files are ignored by Freeboard.")
+                    warnings.append(f"{rel}: other HTML files are ignored by Unpaged.")
                     continue
             files.append((full, rel))
             if rel != name:

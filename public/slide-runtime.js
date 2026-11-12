@@ -4,7 +4,7 @@
 
 // Stored pages carry this placeholder instead of a real URL, so decks keep working
 // if the site moves to another domain. fillAssets() swaps it in at display time.
-export const ASSET_PLACEHOLDER = "%%FREEBOARD_ASSETS%%";
+export const ASSET_PLACEHOLDER = "%%UNPAGED_ASSETS%%";
 
 export function fillAssets(html, code, deckId) {
   return html.replaceAll(ASSET_PLACEHOLDER, `${location.origin}/api/courses/${code}/decks/${deckId}/assets/`);
@@ -108,13 +108,13 @@ const RUNTIME_JS = `
   function choose(o){
     for(var i=0;i<quizzes.length;i++){
       var j=quizzes[i].opts.indexOf(o);
-      if(j>=0){ if(!quizzes[i].done) parent.postMessage({freeboardAnswer:{quiz:i,option:j}},'*'); return; }
+      if(j>=0){ if(!quizzes[i].done) parent.postMessage({unpagedAnswer:{quiz:i,option:j}},'*'); return; }
     }
   }
   window.addEventListener('message',function(e){
-    if(e.source===parent&&e.data&&e.data.freeboardQuiz) paint(e.data.freeboardQuiz);
+    if(e.source===parent&&e.data&&e.data.unpagedQuiz) paint(e.data.unpagedQuiz);
   });
-  if(quizzes.length) parent.postMessage({freeboardReady:true},'*');
+  if(quizzes.length) parent.postMessage({unpagedReady:true},'*');
   document.addEventListener('click',function(e){
     var opt=e.target.closest('.option'); if(opt&&!overlay){ choose(opt); return; }
     if(overlay){ if(e.target===overlay||e.target.closest('.fb-close')) close(); return; }
@@ -126,7 +126,7 @@ const RUNTIME_JS = `
     if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('kp')){ e.preventDefault(); open(e.target); return; }
     // Let the surrounding app turn pages while focus is inside the page.
     if(!overlay&&['ArrowLeft','ArrowRight','PageUp','PageDown'].indexOf(e.key)>=0)
-      parent.postMessage({freeboardKey:e.key},'*');
+      parent.postMessage({unpagedKey:e.key},'*');
   });
 })();
 `;
@@ -134,7 +134,7 @@ const RUNTIME_JS = `
 // hasMedia: the deck came with media files, so relative paths need a base to resolve against.
 // Sends the quiz state into a page: { selected: [option per quiz], results: [per quiz, or null] }.
 export function sendQuiz(frame, state) {
-  frame.contentWindow?.postMessage({ freeboardQuiz: state }, "*");
+  frame.contentWindow?.postMessage({ unpagedQuiz: state }, "*");
 }
 
 export function parseDeck(text, hasMedia = false) {

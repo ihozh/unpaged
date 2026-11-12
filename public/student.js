@@ -18,8 +18,8 @@ const mine = new Map(); // this student's answers in the live class, by "deckId:
 // An anonymous id for this browser, so answering again replaces the earlier answer.
 let voter = crypto.randomUUID();
 try {
-  voter = localStorage.getItem("freeboard.voter") || voter;
-  localStorage.setItem("freeboard.voter", voter);
+  voter = localStorage.getItem("unpaged.voter") || voter;
+  localStorage.setItem("unpaged.voter", voter);
 } catch {}
 
 function show(view) {
@@ -30,7 +30,7 @@ function show(view) {
 }
 
 function renderCourse() {
-  document.title = `${course.title} · Freeboard · Social Shields`;
+  document.title = `${course.title} · Unpaged · Social Shields`;
   $("course-title").textContent = course.title;
   $("no-decks").hidden = course.decks.length > 0;
   $("decks").replaceChildren(
@@ -219,9 +219,9 @@ document.addEventListener("keydown", (e) => {
 // Arrow keys pressed while focus is inside the page iframe.
 window.addEventListener("message", (e) => {
   if (e.source !== $("stage").contentWindow || !e.data) return;
-  if (e.data.freeboardKey) onKey(e.data.freeboardKey);
-  if (e.data.freeboardReady && quiz) sendQuiz($("stage"), quiz); // the page has loaded and asks for its quiz state
-  if (e.data.freeboardAnswer) answer(Number(e.data.freeboardAnswer.quiz), Number(e.data.freeboardAnswer.option));
+  if (e.data.unpagedKey) onKey(e.data.unpagedKey);
+  if (e.data.unpagedReady && quiz) sendQuiz($("stage"), quiz); // the page has loaded and asks for its quiz state
+  if (e.data.unpagedAnswer) answer(Number(e.data.unpagedAnswer.quiz), Number(e.data.unpagedAnswer.option));
 });
 
 const fromUrl = new URLSearchParams(location.search).get("c");

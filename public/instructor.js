@@ -6,7 +6,7 @@ const $ = (id) => document.getElementById(id);
 const MAX_PAGE_CHARS = 900_000;
 const MAX_ASSET_BYTES = 25 * 1024 * 1024;
 const MAX_DECK_BYTES = 200 * 1024 * 1024;
-const PASSCODE_KEY = "freeboard.passcode";
+const PASSCODE_KEY = "unpaged.passcode";
 
 const code = (new URLSearchParams(location.search).get("c") || "").toUpperCase() || null;
 let passcode = "";
@@ -86,7 +86,7 @@ async function loadCourse() {
   const res = await api(`/${code}`);
   if (!res.ok) return false;
   course = await res.json();
-  document.title = `${course.title} · Freeboard · Social Shields`;
+  document.title = `${course.title} · Unpaged · Social Shields`;
   $("course-title").textContent = course.title;
   $("course-code").textContent = code;
   $("no-decks").hidden = course.decks.length > 0;
@@ -331,8 +331,8 @@ document.addEventListener("keydown", (e) => {
 // Arrow keys pressed while focus is inside the page iframe.
 window.addEventListener("message", (e) => {
   if (e.source !== $("stage").contentWindow || !e.data) return;
-  if (e.data.freeboardKey) onKey(e.data.freeboardKey);
-  if (e.data.freeboardReady) showQuiz(); // the page has loaded and asks for its quiz state
+  if (e.data.unpagedKey) onKey(e.data.unpagedKey);
+  if (e.data.unpagedReady) showQuiz(); // the page has loaded and asks for its quiz state
 });
 
 // The socket reports how many students are connected and how many have answered a quiz.

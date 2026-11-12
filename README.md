@@ -1,4 +1,4 @@
-# Freeboard
+# Unpaged
 
 A Social Shields project. Interactive HTML decks in place of PDF slides, organized by course.
 
@@ -25,7 +25,7 @@ One HTML file, optionally with media files next to it. Each page is a `<section 
 
 ## Generating decks with Claude
 
-`skills/freeboard-deck/` is a Claude skill that writes decks in this format and checks them before packaging. In Claude Code, copy the folder to `~/.claude/skills/`. In the Claude apps, upload `skills/freeboard-deck.skill`. To check a deck by hand: `python3 skills/freeboard-deck/scripts/check_deck.py path/to/deck-folder`.
+`skills/unpaged-deck/` is a Claude skill that writes decks in this format and checks them before packaging. In Claude Code, copy the folder to `~/.claude/skills/`. In the Claude apps, upload `skills/unpaged-deck.skill`. To check a deck by hand: `python3 skills/unpaged-deck/scripts/check_deck.py path/to/deck-folder`.
 
 ## How it works
 

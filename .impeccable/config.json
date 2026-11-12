@@ -8,7 +8,7 @@
         "value": "*",
         "files": [
           "public/sample-deck.html",
-          "skills/freeboard-deck/assets/template.html"
+          "skills/unpaged-deck/assets/template.html"
         ],
         "createdAt": "2026-11-11T20:43:41.163Z",
         "reason": "agent: heading/body sizes are injected at render time by BASE_CSS in public/slide-runtime.js (h1 up to 76px vs body 22px); these deck files only hold deck-specific overrides"
