@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Freeboard · Social Shields</title>
+  <meta name="theme-color" content="#f8f8f8">
+  <link rel="icon" type="image/svg+xml" href="https://icons.socialshields.org/api/icons/shield.svg?style=stroke&weight=1.4&color=%23006456&accent=%23ffba00&bg=%23fdfdfd&theme=light&size=96">
+  <link rel="stylesheet" href="https://socialshields.org/brand.css">
+  <link rel="stylesheet" href="/shell.css">
+</head>
+<body class="ss">
+  <div class="bar-wrap ss-wrap">
+    <div class="topbar">
+      <a class="ss-home" href="https://socialshields.org/" aria-label="Social Shields home">
+        <img src="https://icons.socialshields.org/api/icons/shield.svg?style=stroke&weight=1.4&color=%23006456&accent=%23ffba00&bg=%23fdfdfd&theme=light&size=96" alt=""><span>Social Shields</span>
+      </a>
+      <nav class="topnav" aria-label="Freeboard">
+        <span class="product">Freeboard</span>
+        <a href="/instructor">Instructors</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Enter a course code -->
+  <main class="page" id="join" hidden>
+    <section class="hero">
+      <div class="ss-wrap hero-in split">
+        <div class="hero-text">
+          <h1>Open your course</h1>
+          <p class="ss-lede">Interactive decks you can explore, in class and afterwards.</p>
+        </div>
+        <form class="card float" id="join-form">
+          <label class="field">Course code
+            <input class="code-input" type="text" id="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="6" placeholder="ABC234" required>
+          </label>
+          <div class="error" id="join-error" role="alert"></div>
+          <div class="row"><button class="ss-btn" type="submit">Open course</button></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- Course home: the decks -->
+  <main class="page" id="course" hidden>
+    <section class="hero">
+      <div class="ss-wrap hero-in">
+        <h1 class="title" id="course-title"></h1>
+        <p class="ss-lede">Decks open here after they have been taught in class. When a class is live, you follow along automatically.</p>
+      </div>
+    </section>
+    <div class="ss-wrap body">
+      <section class="card list-card" aria-labelledby="decks-h">
+        <h2 id="decks-h">Decks</h2>
+        <div>
+          <ul class="list" id="decks"></ul>
+          <p class="empty" id="no-decks" hidden>No decks in this course yet.</p>
+        </div>
+      </section>
+      <p><a class="link" href="/">Open a different course</a></p>
+    </div>
+  </main>
+
+  <footer class="ss-footer" id="footer">Farmingdale State College</footer>
+
+  <!-- Deck viewer: live (follows the instructor) or review (free browsing) -->
+  <div class="viewer" id="viewer" hidden>
+    <div class="bar">
+      <button class="btn-quiet" id="back" hidden>← All decks</button>
+      <span class="title" id="deck-title"></span>
+      <span class="spacer"></span>
+      <span class="badge live" id="live-badge" hidden>Live</span>
+      <span class="stat" id="status"></span>
+    </div>
+    <div class="stage-wrap">
+      <!-- No allow-same-origin: page scripts cannot reach this app. -->
+      <iframe class="stage" id="stage" sandbox="allow-scripts" title="Current page"></iframe>
+    </div>
+    <div class="nav" id="nav" hidden>
+      <button class="ss-btn ss-btn--ghost" id="prev">← Previous</button>
+      <span class="pos" id="pos"></span>
+      <button class="ss-btn" id="next">Next →</button>
+    </div>
+  </div>
+
+  <script type="module" src="/student.js"></script>
+</body>
+</html>

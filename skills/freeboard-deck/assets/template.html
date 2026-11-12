@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Deck title</title>
+  <style>
+    /* Optional. Everything here is included on every page.
+       Freeboard already styles headings, text, cards and quizzes. */
+    .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: clamp(16px, 3vw, 40px); align-items: center; }
+    .notes { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- Title page -->
+<section class="slide">
+  <h1>Deck title</h1>
+  <p>One line on what this lesson covers.</p>
+</section>
+
+<!-- Plain page -->
+<section class="slide">
+  <h2>A plain page</h2>
+  <div class="two-col">
+    <ul>
+      <li>A short point</li>
+      <li>Another short point</li>
+    </ul>
+    <img src="media/diagram.svg" alt="Describe the diagram">
+  </div>
+  <aside class="notes">Speaker notes. Students can receive these, so no quiz answers here.</aside>
+</section>
+
+<!-- Knowledge-point cards -->
+<section class="slide">
+  <h2>A page of cards</h2>
+  <p>Select a card to see the details.</p>
+  <div class="kps">
+    <div class="kp">
+      <h3>First idea</h3>
+      <p>One-line summary</p>
+      <div class="detail">
+        <h2>First idea</h2>
+        <p>The detail, shown in a dialog when the card is selected.</p>
+      </div>
+    </div>
+    <div class="kp">
+      <h3>Second idea</h3>
+      <p>One-line summary</p>
+      <div class="detail">
+        <h2>Second idea</h2>
+        <p>The detail.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quiz: no separate answer page -->
+<section class="slide">
+  <h2>Quick check</h2>
+  <div class="quiz">
+    <p>The question?</p>
+    <button class="option">a. A plausible wrong answer</button>
+    <button class="option" data-correct>b. The right answer</button>
+    <button class="option">c. A plausible wrong answer</button>
+    <button class="option">d. A plausible wrong answer</button>
+    <div class="explain">Why b is right, shown when the instructor reveals the answers.</div>
+  </div>
+</section>
+
+</body>
+</html>

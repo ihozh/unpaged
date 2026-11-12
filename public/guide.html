@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Instructor guide · Freeboard · Social Shields</title>
+  <meta name="theme-color" content="#f8f8f8">
+  <link rel="icon" type="image/svg+xml" href="https://icons.socialshields.org/api/icons/shield.svg?style=stroke&weight=1.4&color=%23006456&accent=%23ffba00&bg=%23fdfdfd&theme=light&size=96">
+  <link rel="stylesheet" href="https://socialshields.org/brand.css">
+  <link rel="stylesheet" href="/shell.css">
+</head>
+<body class="ss">
+  <div class="bar-wrap ss-wrap">
+    <div class="topbar">
+      <a class="ss-home" href="https://socialshields.org/" aria-label="Social Shields home">
+        <img src="https://icons.socialshields.org/api/icons/shield.svg?style=stroke&weight=1.4&color=%23006456&accent=%23ffba00&bg=%23fdfdfd&theme=light&size=96" alt=""><span>Social Shields</span>
+      </a>
+      <nav class="topnav" aria-label="Freeboard">
+        <span class="product">Freeboard</span>
+        <a href="/instructor">Courses</a>
+        <a href="/guide" aria-current="page">Guide</a>
+      </nav>
+    </div>
+  </div>
+
+<main class="page">
+  <section class="hero">
+    <div class="ss-wrap hero-in">
+      <h1>Instructor guide</h1>
+      <p class="ss-lede">How courses and decks work, which files Freeboard accepts, and how to prepare and teach a class.</p>
+    </div>
+  </section>
+  <div class="ss-wrap body">
+  <div class="prose">
+    <h2 id="how">How it works</h2>
+    <ul>
+      <li>A <strong>course</strong> holds your <strong>decks</strong>. Students open the course with its 6-character course code or the student link. They do not need an account.</li>
+      <li>A deck you have added but not taught is hidden. Students see its title, marked “Not taught yet”, and cannot open it.</li>
+      <li>When you <strong>start a class</strong> on a deck, every student in the course sees the page you are on. They can explore that page but cannot change pages.</li>
+      <li>When you <strong>end the class</strong>, the deck opens to students. From then on they can come back at any time and go through it at their own pace.</li>
+      <li>A class has no time limit. It stays live until you end it.</li>
+    </ul>
+
+    <h2 id="formats">Supported formats</h2>
+    <p>A deck is one HTML file. If it uses images, video or other media, those sit in files next to it. You can add a deck in three ways:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>You choose</th><th>Use it when</th></tr>
+        <tr><td>A single <code>.html</code> file</td><td>The deck has no local media, or only links to media hosted elsewhere.</td></tr>
+        <tr><td>A folder</td><td>The deck has its own images, video or animation files. This is the easiest option on your own computer.</td></tr>
+        <tr><td>A <code>.zip</code> of that folder</td><td>Someone sent you the deck, or you keep decks archived.</td></tr>
+      </table>
+    </div>
+    <p>PowerPoint, Keynote, Google Slides and PDF files are not accepted. The content has to be rebuilt as an HTML deck.</p>
+
+    <h3>Media file types</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Kind</th><th>File types</th></tr>
+        <tr><td>Images</td><td>PNG, JPG, GIF, WebP, AVIF, SVG</td></tr>
+        <tr><td>Video</td><td>MP4, WebM, MOV (MP4 plays on the most devices)</td></tr>
+        <tr><td>Audio</td><td>MP3, WAV, OGG, M4A</td></tr>
+        <tr><td>Animation</td><td>GIF, video, Lottie JSON, or CSS and JavaScript written in the deck</td></tr>
+        <tr><td>Other</td><td>Fonts (WOFF, WOFF2, TTF, OTF), CSS and JavaScript files, JSON and CSV data, video subtitles (VTT), 3D models (GLB, glTF)</td></tr>
+      </table>
+    </div>
+
+    <h2 id="deck">Writing a deck</h2>
+    <p>Each page is a <code>&lt;section class="slide"&gt;</code>. Pages are shown in the order they appear in the file. The first heading on a page becomes its name in your page list, and the file's <code>&lt;title&gt;</code> becomes the suggested deck title.</p>
+    <pre><code>&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="utf-8"&gt;
+  &lt;title&gt;Photosynthesis&lt;/title&gt;
+  &lt;style&gt;
+    /* Optional. Styles here apply to every page. */
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+  &lt;section class="slide"&gt;
+    &lt;h1&gt;Photosynthesis&lt;/h1&gt;
+    &lt;p&gt;How plants turn sunlight into food.&lt;/p&gt;
+  &lt;/section&gt;
+
+  &lt;section class="slide"&gt;
+    &lt;h2&gt;What photosynthesis needs&lt;/h2&gt;
+    &lt;div class="kps"&gt;
+      &lt;div class="kp"&gt;
+        &lt;h3&gt;Light&lt;/h3&gt;
+        &lt;p&gt;The energy source&lt;/p&gt;
+        &lt;div class="detail"&gt;
+          &lt;h2&gt;Light&lt;/h2&gt;
+          &lt;p&gt;Shown only after a student selects the card.&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+    <h3>Knowledge points</h3>
+    <ul>
+      <li>A <code>.kp</code> is a card students can select. Put a short title and a one-line summary in it.</li>
+      <li>The <code>.detail</code> inside it stays hidden until the card is selected, then opens in a dialog. It can hold any content: text, images, video, a worked example.</li>
+      <li>Wrap several cards in a <code>.kps</code> to lay them out in a grid.</li>
+      <li>Each student opens and closes cards on their own screen. Opening a card on your screen does not open it for students.</li>
+    </ul>
+
+    <h3 id="quiz">Quiz questions</h3>
+    <p>A <code>.quiz</code> is a question students answer by selecting one option. Mark the right option with <code>data-correct</code>, and put an optional explanation in an <code>.explain</code>.</p>
+    <pre><code>&lt;section class="slide"&gt;
+  &lt;h2&gt;Quick check&lt;/h2&gt;
+  &lt;div class="quiz"&gt;
+    &lt;p&gt;Where does the oxygen released in photosynthesis come from?&lt;/p&gt;
+    &lt;button class="option"&gt;Carbon dioxide&lt;/button&gt;
+    &lt;button class="option" data-correct&gt;Water&lt;/button&gt;
+    &lt;button class="option"&gt;Glucose&lt;/button&gt;
+    &lt;div class="explain"&gt;
+      &lt;p&gt;The light reactions split water.&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+    <ul>
+      <li><strong>In class</strong>, each student selects an option and can change it. Your screen shows how many students have answered, not what they chose, so it is safe to project. Select <strong>Show answers</strong> to end the question: every screen then marks the correct option, shows how many students chose each one, and shows the explanation.</li>
+      <li><strong>After class</strong>, a student browsing the deck selects an option and sees at once whether it is right, with the explanation.</li>
+      <li>Answers are anonymous. Freeboard counts them and does not record who chose what. The counts are for the current class and start again the next time you teach the deck.</li>
+      <li>The correct option and the explanation are not sent to students until you show the answers, so they cannot be found by inspecting the page.</li>
+      <li>A page can hold more than one quiz. <strong>Show answers</strong> reveals all of them on the page.</li>
+      <li>Up to 12 options per quiz and 20 quizzes per page. If more than one option is marked <code>data-correct</code>, each of them counts as correct; students still select one.</li>
+    </ul>
+
+    <h3>Your own styles and interactions</h3>
+    <p>Pages follow the Social Shields look by default, so a deck works with no styles at all. Anything you put in a <code>&lt;style&gt;</code> or <code>&lt;script&gt;</code> in the <code>&lt;head&gt;</code> is included on every page, so you can restyle the deck or add your own interactions such as drag-and-drop or simulations.</p>
+    <p>Each page loads fresh when it is opened. A page cannot read what a student did on an earlier page.</p>
+    <p><a href="/sample-deck.html" download>Download the sample deck</a> to use as a starting point.</p>
+
+    <h2 id="media">Images, video and animation</h2>
+    <p>Put media files in the same folder as the deck (subfolders are fine) and refer to them by relative path:</p>
+    <pre><code>my-lesson/
+  index.html
+  media/
+    cell.png
+    demo.mp4
+    intro.json</code></pre>
+    <pre><code>&lt;img src="media/cell.png" alt="A plant cell"&gt;
+&lt;video src="media/demo.mp4" controls&gt;&lt;/video&gt;</code></pre>
+    <ul>
+      <li><strong>CSS and JavaScript animation</strong> needs no extra files. Write it in the deck.</li>
+      <li><strong>Lottie and similar players</strong>: include the player script as a file in the folder or from a public CDN, and load the animation data by relative path, for example <code>media/intro.json</code>.</li>
+      <li><strong>Video</strong> plays separately on each student's device. Pressing play on your screen does not start it for students.</li>
+      <li><strong>Embedded players from other sites</strong>, such as YouTube, may not work inside a page. Use a video file instead.</li>
+      <li>Do not paste images into the HTML as base64 text. It makes pages too large to send.</li>
+      <li>If the folder has more than one HTML file, name the deck <code>index.html</code>. Other HTML files in the folder are ignored.</li>
+    </ul>
+
+    <h2 id="before">Before class</h2>
+    <ol>
+      <li>Sign in on the <a href="/instructor">instructor page</a> with the instructor passcode. Your browser remembers it on that device.</li>
+      <li>Create the course, or open it if it exists. Give students the course code or the student link once; it stays the same for the whole course.</li>
+      <li>Add the deck. Check the summary under the file pickers: it should show the number of pages and media files you expect.</li>
+      <li>Do a dry run in a separate practice course, so your real students do not see it. Start a class, open the student link in a second window or on your phone, and go through every page. Check that images load, video plays, each card opens and each quiz takes an answer.</li>
+    </ol>
+    <p>To change a deck, delete it and add the new version. Do this before you teach it; a deleted deck is no longer available to students.</p>
+
+    <h2 id="during">During class</h2>
+    <ol>
+      <li>Open the course and select <strong>Start class</strong> on the deck. Students who have the course open switch to your first page at once.</li>
+      <li>Turn pages with <strong>Previous</strong> and <strong>Next</strong>, the left and right arrow keys, or by picking a page from the list.</li>
+      <li>On a page with a <a href="#quiz">quiz</a>, watch the count of students who have answered, then select <strong>Show answers</strong>.</li>
+      <li>Select <strong>End class</strong> when you finish. Students keep the page they were on and can now move through the whole deck themselves.</li>
+    </ol>
+    <h3>What students can and cannot do</h3>
+    <ul>
+      <li>During a class they see the page you are on and can interact with everything on it. They cannot change pages, and they only receive the page you are on, so they cannot read ahead.</li>
+      <li>A student who joins late, or reconnects after losing their connection, lands on your current page.</li>
+      <li>After the class they can open the deck from the course page at any time and browse it freely.</li>
+    </ul>
+    <h3>If something goes wrong</h3>
+    <ul>
+      <li><strong>You closed or refreshed the tab:</strong> the class is still live. Open the course again, on any device where you are signed in, and select <strong>Resume class</strong>. You return to the page you were on.</li>
+      <li><strong>You need to step away:</strong> “← Course” leaves the teaching screen without ending the class. Students stay on the current page.</li>
+      <li><strong>You forgot to end a class:</strong> it stays live, and students stay locked to its current page, until you end it.</li>
+      <li><strong>You want to teach a deck again:</strong> select <strong>Teach again</strong>. Students are locked to your page for that class, and the deck opens again when you end it.</li>
+    </ul>
+
+    <h2 id="limits">Limits</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>What</th><th>Limit</th></tr>
+        <tr><td>One media file</td><td>25 MB</td></tr>
+        <tr><td>All media in one deck</td><td>200 MB</td></tr>
+        <tr><td>One page of HTML, including its share of the deck's styles and scripts</td><td>About 900 KB</td></tr>
+        <tr><td>Pages in one deck</td><td>500</td></tr>
+        <tr><td>Live classes in one course at the same time</td><td>1</td></tr>
+      </table>
+    </div>
+    <p>For a video over 25 MB, compress it or cut it into shorter clips, one per page.</p>
+  </div>
+  </div>
+</main>
+
+<footer class="ss-footer">Farmingdale State College</footer>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Photosynthesis</title>
+  <style>
+    /* Deck-wide styles go in the head; every page gets them. */
+    .formula { font-size: clamp(18px, 2.6vw, 30px); background: #eeeeee; border-radius: 14px; padding: 16px 20px; text-align: center; }
+    /* A small CSS animation: no extra files needed. */
+    .sun { width: 72px; height: 72px; border-radius: 50%; background: #ffba00; animation: pulse 2.4s ease-in-out infinite; }
+    @keyframes pulse { 50% { transform: scale(1.12); } }
+    @media (prefers-reduced-motion: reduce) { .sun { animation: none; } }
+  </style>
+</head>
+<body>
+
+<section class="slide">
+  <div class="sun" role="img" aria-label="Sun"></div>
+  <h1>Photosynthesis</h1>
+  <p>How plants turn sunlight into food.</p>
+</section>
+
+<section class="slide">
+  <h2>What photosynthesis needs</h2>
+  <p>Select a card to see the details.</p>
+  <div class="kps">
+    <div class="kp">
+      <h3>Light</h3>
+      <p>The energy source</p>
+      <div class="detail">
+        <h2>Light</h2>
+        <p>Chlorophyll absorbs mostly red and blue-violet light and reflects green, which is why leaves look green.</p>
+        <p>More light means faster photosynthesis, up to the light saturation point, where the rate levels off.</p>
+      </div>
+    </div>
+    <div class="kp">
+      <h3>Carbon dioxide</h3>
+      <p>The carbon source</p>
+      <div class="detail">
+        <h2>Carbon dioxide</h2>
+        <p>It enters through stomata on the underside of the leaf. When stomata close, for example at midday in dry weather, photosynthesis slows sharply.</p>
+      </div>
+    </div>
+    <div class="kp">
+      <h3>Water</h3>
+      <p>The source of hydrogen and electrons</p>
+      <div class="detail">
+        <h2>Water</h2>
+        <p>Roots absorb it and xylem carries it to the leaves. All the oxygen released in photosynthesis comes from water, not from carbon dioxide.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>The overall equation</h2>
+  <div class="formula">6CO₂ + 6H₂O — light, chloroplasts → C₆H₁₂O₆ + 6O₂</div>
+  <div class="kps">
+    <div class="kp">
+      <h3>Light reactions</h3>
+      <p>On the thylakoid membranes</p>
+      <div class="detail">
+        <h2>Light reactions</h2>
+        <p>Water is split and oxygen is released. ATP and NADPH are produced to power the next stage.</p>
+      </div>
+    </div>
+    <div class="kp">
+      <h3>Calvin cycle</h3>
+      <p>In the stroma</p>
+      <div class="detail">
+        <h2>Calvin cycle</h2>
+        <p>ATP and NADPH are used to fix carbon dioxide and reduce it to sugar. It does not need light directly, but it depends on the products of the light reactions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Quick check</h2>
+  <div class="quiz">
+    <p>Where does the oxygen released in photosynthesis come from?</p>
+    <button class="option">Carbon dioxide</button>
+    <button class="option" data-correct>Water</button>
+    <button class="option">Glucose</button>
+    <button class="option">Chlorophyll</button>
+    <div class="explain">
+      <p>The light reactions split water, and that is where the oxygen comes from. The carbon and oxygen of carbon dioxide end up in the sugar.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Think about it</h2>
+  <p>Why do growers cool their greenhouses at night?</p>
+  <div class="kps">
+    <div class="kp">
+      <h3>Show a hint</h3>
+      <div class="detail">
+        <h2>Hint</h2>
+        <p>At night there is no photosynthesis, only respiration using up stored sugars. Lower temperatures slow respiration.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

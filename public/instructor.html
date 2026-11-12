@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Instructor · Freeboard · Social Shields</title>
+  <meta name="theme-color" content="#f8f8f8">
+  <link rel="icon" type="image/svg+xml" href="https://icons.socialshields.org/api/icons/shield.svg?style=stroke&weight=1.4&color=%23006456&accent=%23ffba00&bg=%23fdfdfd&theme=light&size=96">
+  <link rel="stylesheet" href="https://socialshields.org/brand.css">
+  <link rel="stylesheet" href="/shell.css">
+</head>
+<body class="ss">
+  <div class="bar-wrap ss-wrap">
+    <div class="topbar">
+      <a class="ss-home" href="https://socialshields.org/" aria-label="Social Shields home">
+        <img src="https://icons.socialshields.org/api/icons/shield.svg?style=stroke&weight=1.4&color=%23006456&accent=%23ffba00&bg=%23fdfdfd&theme=light&size=96" alt=""><span>Social Shields</span>
+      </a>
+      <nav class="topnav" aria-label="Freeboard">
+        <span class="product">Freeboard</span>
+        <a href="/instructor" aria-current="page">Courses</a>
+        <a href="/guide">Guide</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Passcode -->
+  <main class="page" id="login" hidden>
+    <section class="hero">
+      <div class="ss-wrap hero-in split">
+        <div class="hero-text">
+          <h1>Instructor sign-in</h1>
+          <p class="ss-lede">Create courses, add decks and teach a class.</p>
+        </div>
+        <form class="card float" id="login-form">
+          <label class="field">Instructor passcode
+            <input type="password" id="passcode" autocomplete="current-password" required>
+          </label>
+          <div class="error" id="login-error" role="alert"></div>
+          <div class="row"><button class="ss-btn" type="submit">Sign in</button></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- All courses -->
+  <main class="page" id="courses" hidden>
+    <section class="hero">
+      <div class="ss-wrap hero-in">
+        <h1>Your courses</h1>
+        <p class="ss-lede">Each course holds its decks. Students open a course with its code.</p>
+      </div>
+    </section>
+    <div class="ss-wrap body cols">
+      <section class="card list-card" aria-labelledby="courses-h">
+        <h2 id="courses-h">Courses</h2>
+        <div>
+          <ul class="list" id="course-list"></ul>
+          <p class="empty" id="no-courses" hidden>No courses yet. Create the first one.</p>
+        </div>
+      </section>
+      <div class="stack">
+        <form class="card" id="new-course">
+          <h2>New course</h2>
+          <label class="field">Course title
+            <input type="text" id="course-name" maxlength="120" placeholder="Media Literacy, Fall 2026" required>
+          </label>
+          <div class="error" id="course-error" role="alert"></div>
+          <div class="row"><button class="ss-btn" type="submit">Create course</button></div>
+        </form>
+        <p><button class="btn-quiet" id="sign-out">Sign out on this device</button></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- One course: its decks -->
+  <main class="page" id="course" hidden>
+    <section class="hero">
+      <div class="ss-wrap hero-in">
+        <h1 class="title" id="course-title"></h1>
+        <div class="row">
+          <span class="muted">Course code</span>
+          <span class="codechip" id="course-code"></span>
+          <button class="ss-btn ss-btn--ghost" id="copy">Copy student link</button>
+        </div>
+      </div>
+    </section>
+    <div class="ss-wrap body cols">
+      <section class="card list-card" aria-labelledby="decks-h">
+        <h2 id="decks-h">Decks</h2>
+        <div>
+          <ul class="list" id="deck-list"></ul>
+          <p class="empty" id="no-decks" hidden>No decks yet. Add the first one.</p>
+          <div class="error" id="deck-error" role="alert"></div>
+        </div>
+      </section>
+      <form class="card" id="add-deck">
+        <h2>Add a deck</h2>
+        <label class="field">A single .html file, or a .zip with the deck and its media
+          <input type="file" id="file" accept=".html,.htm,.zip,text/html,application/zip">
+        </label>
+        <label class="field">Or a folder with the deck and its images, video and animation files
+          <input type="file" id="folder" webkitdirectory>
+        </label>
+        <label class="field">Deck title
+          <input type="text" id="deck-name" maxlength="200" required>
+        </label>
+        <p class="muted" id="deck-info" role="status"></p>
+        <div class="error" id="add-error" role="alert"></div>
+        <div class="row">
+          <button class="ss-btn" type="submit" id="add" disabled>Add deck</button>
+          <a class="link" href="/guide">How to prepare a deck</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer class="ss-footer" id="footer">Farmingdale State College</footer>
+
+  <!-- Teaching a live class -->
+  <div class="viewer with-list" id="room" hidden>
+    <div class="bar">
+      <button class="btn-quiet" id="leave" title="The class stays live. You can come back and resume.">← Course</button>
+      <span class="title" id="room-title"></span>
+      <span class="badge live">Live</span>
+      <span class="spacer"></span>
+      <span class="stat">Course code <b id="room-code"></b></span>
+      <span class="stat">Students online <b id="count">0</b></span>
+      <span class="stat"><span class="dot" id="dot"></span><span id="conn">Connecting</span></span>
+      <button class="ss-btn" id="end">End class</button>
+    </div>
+    <nav class="page-list" id="page-list" aria-label="Pages"></nav>
+    <div class="stage-wrap">
+      <iframe class="stage" id="stage" sandbox="allow-scripts" title="Current page"></iframe>
+    </div>
+    <div class="nav">
+      <button class="ss-btn ss-btn--ghost" id="prev">← Previous</button>
+      <span class="pos" id="pos"></span>
+      <button class="ss-btn" id="next">Next →</button>
+      <span class="stat quiz-stat" id="answered" role="status" hidden></span>
+      <button class="ss-btn ss-btn--ghost" id="reveal" hidden>Show answers</button>
+    </div>
+  </div>
+
+  <script type="module" src="/instructor.js"></script>
+</body>
+</html>
