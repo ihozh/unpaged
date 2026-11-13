@@ -10,6 +10,7 @@ let ws = null;
 let retryMs = 1000;
 let pingTimer = null;
 const OUTLINE_KEY = "unpaged.outline"; // "off" once you close the outline on a wide screen
+const PDF_HINT = "Opens the print dialog. Choose “Save as PDF” there.";
 const narrow = matchMedia("(max-width: 820px)"); // here the outline opens over the page
 
 // Quiz on the page being shown: { deckId, page, selected: [option per quiz], results: [per quiz], key }.
@@ -46,7 +47,12 @@ function renderCourse() {
         b.className = "open";
         b.textContent = d.title;
         b.onclick = () => openReview(d.id, 0);
-        li.append(b, meta);
+        const pdf = document.createElement("button");
+        pdf.className = "btn-quiet";
+        pdf.textContent = "Save as PDF";
+        pdf.title = PDF_HINT;
+        pdf.onclick = () => savePdf({ id: d.id, title: d.title, count: d.pages }, pdf);
+        li.append(b, meta, pdf);
       } else {
         li.className = "locked";
         const name = document.createElement("span");
@@ -137,6 +143,8 @@ async function openReview(id, index) {
   );
   $("outline").hidden = false;
   $("pdf").hidden = false;
+  $("pdf").title = PDF_HINT;
+  $("pdf").textContent = "Save as PDF";
   let wanted = !narrow.matches;
   try {
     wanted = wanted && localStorage.getItem(OUTLINE_KEY) !== "off";
@@ -168,16 +176,15 @@ async function goTo(index) {
 
 // Save as PDF: the whole deck goes into one hidden document, which prints itself. The browser's
 // print dialog does the saving. Quiz answers are included: a deck in review is already open.
+// Offered on the course page and in the viewer, for released decks only; the server does not
+// hand out a deck's pages before that. deck: { id, title, count }.
 let printFrame = null;
-async function savePdf() {
-  if (mode !== "review") return;
-  const deck = review;
-  const button = $("pdf");
+async function savePdf(deck, button) {
   button.disabled = true;
   button.textContent = "Preparing…";
   try {
     const base = `/api/courses/${code}/decks/${deck.id}/pages/`;
-    const pages = new Array(deck.pages.length);
+    const pages = new Array(deck.count);
     let next = 0;
     const worker = async () => {
       for (let i; (i = next++) < pages.length; ) {
@@ -202,14 +209,15 @@ async function savePdf() {
     printFrame.tabIndex = -1;
     printFrame.srcdoc = printDeck(deck.title, pages);
     document.body.append(printFrame);
-    $("status").textContent = "";
+    button.textContent = "Save as PDF";
   } catch {
-    $("status").textContent = "Could not prepare the PDF. Try again.";
+    button.textContent = "Could not prepare the PDF. Try again";
   }
   button.disabled = false;
-  button.textContent = "Save as PDF";
 }
-$("pdf").addEventListener("click", savePdf);
+$("pdf").addEventListener("click", () => {
+  if (mode === "review") savePdf({ id: review.id, title: review.title, count: review.pages.length }, $("pdf"));
+});
 
 // The student picked an option. In a live class the answer goes to the instructor and can be
 // changed until the answers are shown. In review the answer is checked on the spot.
