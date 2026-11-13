@@ -137,6 +137,75 @@ export function sendQuiz(frame, state) {
   frame.contentWindow?.postMessage({ unpagedQuiz: state }, "*");
 }
 
+// Print version of a deck: every page in one document, one page per sheet, which the browser
+// saves as a PDF. Knowledge-point details are laid open, since nothing can be clicked on paper,
+// in smaller type so that a page of cards still fits its sheet. A page that is too long anyway
+// runs on to the next sheet.
+const PRINT_CSS = `
+@page{size:13.333in 7.5in;margin:0}
+html,body{height:auto!important}
+body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.slide{min-height:99vh;break-after:page;page-break-after:always}
+.slide:last-of-type{break-after:auto;page-break-after:auto}
+*,*::before,*::after{animation-duration:.001s!important;animation-delay:0s!important;animation-iteration-count:1!important;transition:none!important}
+.kps{align-items:start}
+.kp{cursor:default;break-inside:avoid}
+.kp::after{display:none}
+.kp>.detail{display:block;border-top:1px solid rgba(7,7,7,.1);margin-top:6px;padding-top:8px}
+.kp>.detail :is(p,li){font-size:clamp(13px,1.35vw,17px)}
+.kp>.detail :is(h1,h2,h3){font-size:clamp(17px,1.9vw,24px);line-height:1.2}
+.option{cursor:default;break-inside:avoid}
+.notes{display:none}
+`;
+
+// Runs inside the print document: waits for images and fonts, then opens the print dialog.
+const PRINT_JS = `
+(function(){
+  var done=false;
+  function go(){ if(done)return; done=true; setTimeout(function(){ window.print(); },300); }
+  window.addEventListener('afterprint',function(){ parent.postMessage({unpagedPrinted:true},'*'); });
+  window.addEventListener('load',function(){
+    var fonts=document.fonts&&document.fonts.ready; if(fonts) fonts.then(go,go); else go();
+  });
+  setTimeout(go,8000);
+})();
+`;
+
+// pages: [{ html, key }], where html is a stored page (assets filled in) and key is its quiz
+// answer key, if the reader is allowed to have it. Returns one HTML document.
+export function printDeck(title, pages) {
+  const parser = new DOMParser();
+  let head = "";
+  const slides = pages.map(({ html, key }, i) => {
+    const doc = parser.parseFromString(html, "text/html");
+    if (i === 0) {
+      doc.head.querySelectorAll("title").forEach((t) => t.remove());
+      head = doc.head.innerHTML;
+    }
+    const slide = doc.body.querySelector("section");
+    if (!slide) return "";
+    slide.querySelectorAll("[loading]").forEach((el) => el.removeAttribute("loading"));
+    slide.querySelectorAll(".quiz").forEach((quiz, q) => {
+      const answer = key?.[q];
+      if (!answer) return;
+      quiz.classList.add("fb-revealed");
+      quiz.querySelectorAll(".option").forEach((o, j) => {
+        if (!answer.correct.includes(j)) return;
+        o.classList.add("fb-correct");
+        o.insertAdjacentHTML("beforeend", `<span class="fb-notes"><span class="fb-tag fb-right">Correct</span></span>`);
+      });
+      if (answer.explain) quiz.insertAdjacentHTML("beforeend", `<div class="fb-explain">${answer.explain}</div>`);
+    });
+    return slide.outerHTML;
+  });
+  const name = document.createElement("title");
+  name.textContent = title;
+  return (
+    `<!doctype html><html lang="en"><head>${head}${name.outerHTML}<style>${PRINT_CSS}</style></head>` +
+    `<body>${slides.join("")}<script>${PRINT_JS}</` + `script></body></html>`
+  );
+}
+
 export function parseDeck(text, hasMedia = false) {
   const doc = new DOMParser().parseFromString(text, "text/html");
   let sections = [...doc.querySelectorAll("section.slide")];

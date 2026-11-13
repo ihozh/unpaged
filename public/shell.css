@@ -104,6 +104,8 @@ iframe.stage { border: 0; width: 100%; height: 100%; display: block; background:
 .notes-body > * + * { margin-top: .6em; }
 .notes-body :is(ul, ol) { padding-left: 1.3em; }
 .notes-body blockquote { padding-left: 12px; border-left: 2px solid var(--ss-line); }
+/* Holds the print version of a deck while the print dialog is open. Never seen. */
+.print-frame { position: fixed; top: 0; left: 0; width: 1280px; height: 720px; border: 0; opacity: 0; pointer-events: none; z-index: -1; }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #9b2c1b; margin-right: 6px; }
 .dot.on { background: var(--ss-green-dark); }
 
@@ -128,6 +130,9 @@ iframe.stage { border: 0; width: 100%; height: 100%; display: block; background:
   .viewer.with-list { grid-template: auto minmax(0, 1fr) auto / minmax(0, 1fr); grid-template-areas: "bar" "stage" "nav"; }
   .viewer.with-list.has-notes { grid-template: "bar" auto "stage" minmax(0, 1fr) "notes" auto "nav" auto / minmax(0, 1fr); }
   .page-list { display: none; }
+  /* The student outline has a button to open it, so on a narrow screen it opens over the page. */
+  .viewer.outline .page-list { display: block; grid-area: stage; z-index: 2; border-right: 0; padding: 12px; }
+  .viewer.outline .page-list button { min-height: 44px; font-size: 16px; }
   .viewer.with-list .stage-wrap { padding: 8px; }
   .topbar { padding: 8px 10px; gap: 4px; }
   .topbar .ss-home span { display: none; }

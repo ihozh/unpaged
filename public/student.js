@@ -1,4 +1,4 @@
-import { fillAssets, sendQuiz } from "/slide-runtime.js";
+import { fillAssets, sendQuiz, printDeck } from "/slide-runtime.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -9,6 +9,8 @@ let review = null; // { id, title, pages: [titles], index }
 let ws = null;
 let retryMs = 1000;
 let pingTimer = null;
+const OUTLINE_KEY = "unpaged.outline"; // "off" once you close the outline on a wide screen
+const narrow = matchMedia("(max-width: 820px)"); // here the outline opens over the page
 
 // Quiz on the page being shown: { deckId, page, selected: [option per quiz], results: [per quiz], key }.
 // `key` (the answers) is only known in review, after the deck has been released.
@@ -86,8 +88,28 @@ function showLive(msg) {
   $("live-badge").hidden = false;
   $("back").hidden = true;
   $("nav").hidden = true;
+  $("outline").hidden = true;
+  $("pdf").hidden = true;
+  setOutline(false);
   show("viewer");
 }
+
+// The outline lists every page of a deck in review. It is not offered during a live class,
+// where students only know about the page the instructor is on.
+function setOutline(open) {
+  $("viewer").classList.toggle("with-list", open);
+  $("page-list").hidden = !open;
+  $("outline").setAttribute("aria-expanded", String(open));
+}
+$("outline").addEventListener("click", () => {
+  const open = $("page-list").hidden;
+  setOutline(open);
+  if (open) $("page-list").querySelector('[aria-current="true"]')?.scrollIntoView({ block: "nearest" });
+  if (narrow.matches) return; // on a narrow screen it always starts closed
+  try {
+    localStorage.setItem(OUTLINE_KEY, open ? "on" : "off");
+  } catch {}
+});
 
 // Review: a deck that has been taught. Students turn pages themselves.
 async function openReview(id, index) {
@@ -101,6 +123,25 @@ async function openReview(id, index) {
   $("back").hidden = false;
   $("nav").hidden = false;
   $("status").textContent = "";
+  $("page-list").replaceChildren(
+    ...deck.pages.map((title, i) => {
+      const b = document.createElement("button");
+      b.textContent = `${i + 1}. ${title}`;
+      b.title = title;
+      b.onclick = () => {
+        if (narrow.matches) setOutline(false);
+        goTo(i);
+      };
+      return b;
+    }),
+  );
+  $("outline").hidden = false;
+  $("pdf").hidden = false;
+  let wanted = !narrow.matches;
+  try {
+    wanted = wanted && localStorage.getItem(OUTLINE_KEY) !== "off";
+  } catch {}
+  setOutline(wanted);
   show("viewer");
   await goTo(Math.min(index, deck.pages.length - 1));
 }
@@ -119,7 +160,56 @@ async function goTo(index) {
   $("pos").textContent = `${index + 1} / ${review.pages.length}`;
   $("prev").disabled = index === 0;
   $("next").disabled = index === review.pages.length - 1;
+  [...$("page-list").children].forEach((b, i) => {
+    b.setAttribute("aria-current", String(i === index));
+    if (i === index && !$("page-list").hidden) b.scrollIntoView({ block: "nearest" });
+  });
 }
+
+// Save as PDF: the whole deck goes into one hidden document, which prints itself. The browser's
+// print dialog does the saving. Quiz answers are included: a deck in review is already open.
+let printFrame = null;
+async function savePdf() {
+  if (mode !== "review") return;
+  const deck = review;
+  const button = $("pdf");
+  button.disabled = true;
+  button.textContent = "Preparing…";
+  try {
+    const base = `/api/courses/${code}/decks/${deck.id}/pages/`;
+    const pages = new Array(deck.pages.length);
+    let next = 0;
+    const worker = async () => {
+      for (let i; (i = next++) < pages.length; ) {
+        const res = await fetch(base + i);
+        if (!res.ok) throw new Error("page");
+        const html = fillAssets(await res.text(), code, deck.id);
+        let key = [];
+        if (/class\s*=\s*["'][^"']*\bquiz\b/.test(html)) {
+          const keyRes = await fetch(`${base}${i}/quiz`);
+          if (keyRes.ok) key = (await keyRes.json()).key;
+        }
+        pages[i] = { html, key };
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    printFrame?.remove();
+    printFrame = document.createElement("iframe");
+    printFrame.className = "print-frame";
+    // Same sandbox as a page, plus allow-modals, which is what lets it open the print dialog.
+    printFrame.setAttribute("sandbox", "allow-scripts allow-modals");
+    printFrame.setAttribute("aria-hidden", "true");
+    printFrame.tabIndex = -1;
+    printFrame.srcdoc = printDeck(deck.title, pages);
+    document.body.append(printFrame);
+    $("status").textContent = "";
+  } catch {
+    $("status").textContent = "Could not prepare the PDF. Try again.";
+  }
+  button.disabled = false;
+  button.textContent = "Save as PDF";
+}
+$("pdf").addEventListener("click", savePdf);
 
 // The student picked an option. In a live class the answer goes to the instructor and can be
 // changed until the answers are shown. In review the answer is checked on the spot.
@@ -218,6 +308,11 @@ document.addEventListener("keydown", (e) => {
 });
 // Arrow keys pressed while focus is inside the page iframe.
 window.addEventListener("message", (e) => {
+  if (printFrame && e.source === printFrame.contentWindow && e.data?.unpagedPrinted) {
+    printFrame.remove();
+    printFrame = null;
+    return;
+  }
   if (e.source !== $("stage").contentWindow || !e.data) return;
   if (e.data.unpagedKey) onKey(e.data.unpagedKey);
   if (e.data.unpagedReady && quiz) sendQuiz($("stage"), quiz); // the page has loaded and asks for its quiz state

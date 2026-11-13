@@ -64,11 +64,13 @@
   <footer class="ss-footer" id="footer">Farmingdale State College</footer>
 
   <!-- Deck viewer: live (follows the instructor) or review (free browsing) -->
-  <div class="viewer" id="viewer" hidden>
+  <div class="viewer outline" id="viewer" hidden>
     <div class="bar">
       <button class="btn-quiet" id="back" hidden>← All decks</button>
+      <button class="btn-quiet" id="outline" aria-controls="page-list" aria-expanded="false" hidden>Outline</button>
       <span class="title" id="deck-title"></span>
       <span class="spacer"></span>
+      <button class="btn-quiet" id="pdf" title="Opens the print dialog. Choose “Save as PDF” there." hidden>Save as PDF</button>
       <span class="badge live" id="live-badge" hidden>Live</span>
       <span class="stat" id="status"></span>
     </div>
@@ -76,6 +78,8 @@
       <!-- No allow-same-origin: page scripts cannot reach this app. -->
       <iframe class="stage" id="stage" sandbox="allow-scripts" title="Current page"></iframe>
     </div>
+    <!-- Review only: every page of the deck, to jump straight to one. -->
+    <nav class="page-list" id="page-list" aria-label="Pages" hidden></nav>
     <div class="nav" id="nav" hidden>
       <button class="ss-btn ss-btn--ghost" id="prev">← Previous</button>
       <span class="pos" id="pos"></span>
