@@ -66,6 +66,7 @@
         <div>
           <ul class="list" id="course-list"></ul>
           <p class="empty" id="no-courses" hidden>No courses yet. Create the first one.</p>
+          <div class="error" id="list-error" role="alert"></div>
         </div>
       </section>
       <div class="stack">
@@ -137,7 +138,9 @@
           <span class="muted">Course code</span>
           <span class="codechip" id="course-code"></span>
           <button class="ss-btn ss-btn--ghost" id="copy">Copy student link</button>
+          <button class="btn-quiet" id="delete-course">Delete course</button>
         </div>
+        <div class="error" id="course-delete-error" role="alert"></div>
       </div>
     </section>
     <div class="ss-wrap body cols">
@@ -175,7 +178,7 @@
   <!-- Teaching a live class -->
   <div class="viewer with-list" id="room" hidden>
     <div class="bar">
-      <button class="btn-quiet" id="leave" title="The class stays live. You can come back and resume.">← Course</button>
+      <button class="btn-quiet" id="leave" title="Back to the course. You are asked whether to end the class.">← Course</button>
       <span class="title" id="room-title"></span>
       <span class="badge live">Live</span>
       <span class="spacer"></span>
@@ -184,7 +187,7 @@
       <span class="stat"><span class="dot" id="dot"></span><span id="conn">Connecting</span></span>
       <button class="btn-quiet" id="notes-toggle" title="Show or hide your speaker notes (N)" hidden>Hide notes</button>
       <button class="btn-quiet" id="screen" title="Open the page alone in a second window for the projector. This window keeps your notes, the page list and the controls, and both turn pages together.">Projector window</button>
-      <button class="btn-quiet" id="present" title="Fill this screen with the page only: no page list, notes or controls (F)">Present</button>
+      <button class="btn-quiet" id="present" title="Fill this screen with the page only: no page list or controls, and notes only if you ask for them with N (F)">Present</button>
       <button class="ss-btn" id="end">End class</button>
     </div>
     <nav class="page-list" id="page-list" aria-label="Pages"></nav>
@@ -201,6 +204,7 @@
         <button class="ss-btn ss-btn--ghost" id="prev">← Previous</button>
         <span class="pos" id="pos"></span>
         <button class="ss-btn" id="next">Next →</button>
+        <button class="btn-quiet" id="present-notes" title="Show or hide your speaker notes beside the page (N)" aria-pressed="false" hidden>Notes</button>
         <button class="btn-quiet" id="present-full" title="Full screen (F)" hidden>Full screen</button>
         <button class="btn-quiet" id="present-exit" title="Leave presenting (Esc)" hidden>Exit</button>
       </div>
@@ -209,6 +213,19 @@
         <button class="ss-btn ss-btn--ghost" id="reveal" hidden>Show answers</button>
       </div>
     </div>
+    <!-- Inside the teaching screen, so that it also shows while that is full screen -->
+    <dialog class="ask" id="leave-dialog" aria-labelledby="leave-h">
+      <form method="dialog">
+        <h2 id="leave-h">End this class?</h2>
+        <p>Ending it opens the deck to students, who can then browse it on their own.</p>
+        <p class="muted">If you keep it live, students stay on the current page. It still ends by itself a few minutes after you close this course or sign out.</p>
+        <div class="row">
+          <button class="ss-btn" value="end" autofocus>End class</button>
+          <button class="ss-btn ss-btn--ghost" value="keep">Keep it live</button>
+          <button class="btn-quiet" value="">Cancel</button>
+        </div>
+      </form>
+    </dialog>
   </div>
 
   <script type="module" src="/instructor.js"></script>

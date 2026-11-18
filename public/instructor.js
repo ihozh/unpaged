@@ -28,6 +28,7 @@ let room = null; // live class: { deckId, pages: [titles], index, quiz, hasNotes
 const pageCache = new Map();
 const notesCache = new Map();
 let notesOn = true;
+let presentNotes = false; // notes beside the page while presenting: off each time you start presenting
 try {
   notesOn = localStorage.getItem(NOTES_KEY) !== "off";
 } catch {}
@@ -73,12 +74,28 @@ async function showCourses() {
       const meta = document.createElement("span");
       meta.className = "meta";
       meta.textContent = c.code;
-      li.append(a, meta);
+      const del = document.createElement("button");
+      del.className = "btn-quiet";
+      del.textContent = "Delete";
+      del.onclick = async () => {
+        const error = await deleteCourse(c.code, c.title);
+        $("list-error").textContent = error || "";
+        if (error === null) showCourses();
+      };
+      li.append(a, meta, del);
       return li;
     }),
   );
   showAccount(await (await call("/account")).json());
   show("courses");
+}
+
+// Asks first. Returns null once the course is deleted, undefined if you said no, or what went wrong.
+async function deleteCourse(courseCode, title) {
+  if (!confirm(`Delete the course “${title}” (${courseCode})?\n\nAll its decks and media, the sign-in sheets and the quiz answers are deleted, and the course code stops working. This cannot be undone.`)) return undefined;
+  const res = await api(`/${courseCode}`, { method: "DELETE" });
+  if (res.ok) return null;
+  return res.status === 409 ? "A class is live in this course. End it first." : "Could not delete the course. Try again.";
 }
 
 // ---------- Account ----------
@@ -284,6 +301,12 @@ $("copy").addEventListener("click", async () => {
   setTimeout(() => ($("copy").textContent = "Copy student link"), 1500);
 });
 
+$("delete-course").addEventListener("click", async () => {
+  const error = await deleteCourse(code, course.title);
+  $("course-delete-error").textContent = error || "";
+  if (error === null) location.href = "/instructor";
+});
+
 // ---------- Add a deck ----------
 
 function failDeck(message) {
@@ -443,10 +466,14 @@ function cleanNotes(html) {
   return out;
 }
 
+// While presenting, notes show only when asked for: that screen may be the one on the projector.
+// A projector window never shows them.
 function layoutNotes() {
-  const on = Boolean(room?.hasNotes) && notesOn;
+  const on = Boolean(room?.hasNotes) && !isScreen && (presenting ? presentNotes : notesOn);
   $("room").classList.toggle("has-notes", on);
   $("notes").hidden = !on;
+  $("present-notes").hidden = !presenting || isScreen || !room?.hasNotes;
+  $("present-notes").setAttribute("aria-pressed", String(presentNotes));
   $("notes-toggle").textContent = notesOn ? "Hide notes" : "Show notes";
   $("notes-toggle").setAttribute("aria-pressed", String(notesOn));
 }
@@ -462,23 +489,30 @@ async function showNotes(index) {
 }
 
 function toggleNotes() {
-  if (!room?.hasNotes) return;
-  notesOn = !notesOn;
-  try {
-    localStorage.setItem(NOTES_KEY, notesOn ? "on" : "off");
-  } catch {}
+  if (!room?.hasNotes || isScreen) return;
+  if (presenting) presentNotes = !presentNotes;
+  else {
+    notesOn = !notesOn;
+    try {
+      localStorage.setItem(NOTES_KEY, notesOn ? "on" : "off");
+    } catch {}
+  }
   layoutNotes();
 }
 $("notes-toggle").addEventListener("click", toggleNotes);
+$("present-notes").addEventListener("click", toggleNotes);
 
 // Presenting: only the page, full screen, for when your screen is the one on the projector.
-// The page list, notes and bars go away; the arrow keys still turn pages.
+// The page list, notes and bars go away; the arrow keys still turn pages. N brings the notes
+// back beside the page, for when the screen is yours alone.
 let presenting = false;
 function setPresenting(on) {
   if (!room) on = false;
   presenting = on;
+  presentNotes = false;
   $("room").classList.toggle("presenting", on);
   $("present-exit").hidden = !on;
+  layoutNotes();
   if (on) fullScreen();
   else if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   syncFull();
@@ -572,20 +606,29 @@ function setConn(ok, label) {
 
 $("prev").addEventListener("click", () => go(room.index - 1));
 $("next").addEventListener("click", () => go(room.index + 1));
-$("leave").addEventListener("click", async () => {
+async function leaveRoom() {
+  $("leave-dialog").close();
   setPresenting(false);
   room = null;
   await loadCourse();
   show("course");
-});
-$("end").addEventListener("click", async () => {
-  if (!confirm("End this class? The deck then opens to students, who can browse it on their own.")) return;
+}
+async function endClass() {
   const res = await api(`/${code}/end`, { method: "POST" });
   if (!res.ok) return setConn(false, "Could not end the class. Try again.");
-  setPresenting(false);
-  room = null;
-  await loadCourse();
-  show("course");
+  await leaveRoom();
+}
+// Leaving the teaching screen ends the class unless you choose to keep it live.
+$("leave").addEventListener("click", () => {
+  $("leave-dialog").returnValue = "";
+  $("leave-dialog").showModal();
+});
+$("leave-dialog").addEventListener("close", (e) => {
+  if (e.target.returnValue === "end") endClass();
+  if (e.target.returnValue === "keep") leaveRoom();
+});
+$("end").addEventListener("click", () => {
+  if (confirm("End this class? The deck then opens to students, who can browse it on their own.")) endClass();
 });
 
 function onKey(key) {
@@ -594,7 +637,7 @@ function onKey(key) {
   if (key === "ArrowLeft" || key === "PageUp") go(room.index - 1);
 }
 document.addEventListener("keydown", (e) => {
-  if (e.target.closest("input, textarea")) return;
+  if (e.target.closest("input, textarea, dialog")) return;
   onKey(e.key);
   if (!room || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === "n" || e.key === "N") toggleNotes();
@@ -631,10 +674,9 @@ function connect() {
     }
     if (msg.type === "end" && room) {
       if (isScreen) window.close();
-      setPresenting(false);
-      room = null;
-      loadCourse().then(() => show("course"));
+      leaveRoom();
     }
+    if (msg.type === "gone") location.href = "/instructor"; // the course was deleted in another window
     if (msg.type === "answered" && room?.quiz && msg.page === room.index) {
       room.quiz.answered = msg.count;
       showQuiz();
@@ -705,6 +747,16 @@ $("login-form").addEventListener("submit", async (e) => {
   }
 });
 $("sign-out").addEventListener("click", async () => {
+  // Signing out ends any class you left live.
+  try {
+    const list = await (await api("")).json();
+    await Promise.all(
+      list.map(async (c) => {
+        const res = await api(`/${c.code}`);
+        if (res.ok && (await res.json()).live) await api(`/${c.code}/end`, { method: "POST" });
+      }),
+    );
+  } catch {}
   await call("/logout", { method: "POST" }).catch(() => {});
   try {
     localStorage.removeItem(TOKEN_KEY);

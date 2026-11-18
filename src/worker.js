@@ -43,6 +43,8 @@ const CODE = /^[A-Z0-9]{6}$/;
 const SESSION_MS = 90 * 24 * 3600 * 1000;
 const MAX_FAILS = 10; // wrong passwords in a row before sign-in pauses
 const LOCK_MS = 15 * 60 * 1000;
+// A live class ends by itself once its instructor has had no window open on the course for this long.
+const AWAY_MS = 3 * 60 * 1000;
 
 const bytes = (s) => new TextEncoder().encode(s);
 const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -106,6 +108,13 @@ export class Directory extends DurableObject {
       const course = await request.json();
       if (await store.get(`course:${course.code}`)) return text("exists", 409);
       await store.put(`course:${course.code}`, course);
+      return text("ok");
+    }
+
+    // A deleted course is no longer listed, and its code stops working.
+    const gone = path.match(/^\/courses\/([A-Z0-9]{6})$/);
+    if (gone && method === "DELETE") {
+      await store.delete(`course:${gone[1]}`);
       return text("ok");
     }
 
@@ -358,6 +367,20 @@ export class Course extends DurableObject {
       });
     }
 
+    // Deleting the course: every deck, its media, the sign-ins and the answers go with it.
+    if (path === "/" && method === "DELETE") {
+      if (live) return text("end the class first", 409);
+      for (const s of this.ctx.getWebSockets()) {
+        try {
+          s.send(JSON.stringify({ type: "gone" }));
+          s.close(1000, "course deleted");
+        } catch {}
+      }
+      await store.deleteAlarm();
+      await store.deleteAll();
+      return text("ok");
+    }
+
     if (path === "/ws") {
       const { 0: client, 1: server } = new WebSocketPair();
       // The role only decides who is counted as a student; it grants nothing.
@@ -367,6 +390,7 @@ export class Course extends DurableObject {
       this.ctx.acceptWebSocket(server, tags);
       if (live) await this.sendSlide(decks, live, [server]);
       this.sendCount();
+      await this.watchInstructor();
       return new Response(null, { status: 101, webSocket: client });
     }
 
@@ -449,11 +473,7 @@ export class Course extends DurableObject {
     }
 
     if (path === "/end" && method === "POST") {
-      if (!live) return text("ok");
-      decks.find((d) => d.id === live.deckId).status = "released";
-      await store.put("decks", decks);
-      await store.delete("live");
-      this.broadcast({ type: "end", deckId: live.deckId, index: live.index });
+      if (live) await this.endClass(decks, live);
       return text("ok");
     }
 
@@ -574,10 +594,37 @@ export class Course extends DurableObject {
       await store.put("live", started);
       await this.sendSlide(decks, started, this.ctx.getWebSockets("student"));
       this.broadcast({ type: "decks" });
+      await this.watchInstructor();
       return Response.json(started);
     }
 
     return text("not found", 404);
+  }
+
+  async endClass(decks, live) {
+    const store = this.ctx.storage;
+    decks.find((d) => d.id === live.deckId).status = "released";
+    await store.put("decks", decks);
+    await store.delete("live");
+    await store.deleteAlarm();
+    this.broadcast({ type: "end", deckId: live.deckId, index: live.index });
+  }
+
+  // A class whose instructor has gone ends by itself. While a class is live and none of the
+  // instructor's windows is connected, an alarm is set for AWAY_MS from when the last one left;
+  // a window that connects again in time (a reload, a dropped network) cancels it.
+  async watchInstructor(leaving) {
+    const store = this.ctx.storage;
+    const here = this.ctx.getWebSockets("instructor").some((s) => s !== leaving);
+    if (here || !(await store.get("live"))) return store.deleteAlarm();
+    if ((await store.getAlarm()) === null) await store.setAlarm(Date.now() + AWAY_MS);
+  }
+
+  async alarm() {
+    const store = this.ctx.storage;
+    const live = await store.get("live");
+    if (!live || this.ctx.getWebSockets("instructor").length) return;
+    await this.endClass((await store.get("decks")) || [], live);
   }
 
   // Sends the live page to these sockets. For a deck that asks for RAM IDs, a student who has
@@ -698,10 +745,12 @@ export class Course extends DurableObject {
       ws.close(code === 1005 || code === 1006 ? 1000 : code);
     } catch {}
     this.sendCount(ws);
+    await this.watchInstructor(ws);
   }
 
   async webSocketError(ws) {
     this.sendCount(ws);
+    await this.watchInstructor(ws);
   }
 
   broadcast(msg) {
@@ -823,13 +872,24 @@ export default {
     // A course kept in its instructor's own Worker. That Worker's key goes along only for
     // the instructor who owns the course; nobody's sign-in here is ever sent on.
     const home = await homeOf(env, code);
+    // Deleting a course: its contents go where they are kept, then its code is taken off the list
+    // here. A course that is already gone where it is kept (404) is still taken off the list.
+    const deleting = request.method === "DELETE" && sub === "/";
+    // The Course checks whose it is, but one that is already gone cannot, so that is checked here.
+    const owns = Boolean(user) && (user.admin || (Boolean(home) && (home.owner ? home.owner === user.name : Boolean(user.owner))));
+    const unlist = async (res) => {
+      if (!res.ok && !(res.status === 404 && owns)) return res;
+      homes.delete(code);
+      await directory(env).fetch(`https://directory/courses/${code}`, { method: "DELETE" });
+      return text("ok");
+    };
     if (home?.worker) {
       const mine = Boolean(user?.name) && user.name === home.owner && user.worker?.origin === home.worker;
       if (request.method !== "GET" && !answering && !mine) return text("not your course", 403);
       const out = new Request(home.worker + url.pathname + url.search, request);
       out.headers.delete("Authorization");
       if (mine) out.headers.set("Authorization", `Bearer ${user.worker.key}`);
-      return fetch(out);
+      return deleting ? unlist(await fetch(out)) : fetch(out);
     }
 
     if (sub === "/ws" && request.headers.get("Upgrade") !== "websocket") return text("expected websocket", 426);
@@ -840,6 +900,7 @@ export default {
       forwarded.headers.set("X-User", user.name);
       if (user.owner) forwarded.headers.set("X-Owner", "1");
     }
-    return courseStub(env, code).fetch(forwarded);
+    const res = await courseStub(env, code).fetch(forwarded);
+    return deleting ? unlist(res) : res;
   },
 };

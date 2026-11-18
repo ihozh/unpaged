@@ -282,6 +282,8 @@ function connect() {
       else loadCourse();
     } else if (msg.type === "decks" && mode === "home") {
       loadCourse();
+    } else if (msg.type === "gone") {
+      location.href = "/"; // the instructor deleted the course
     }
   };
 
