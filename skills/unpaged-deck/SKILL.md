@@ -171,6 +171,50 @@ my-lesson/
   Keep `.notes{display:none}` in the deck's styles so the file also looks right when
   opened on its own.
 
+## Runnable Python (PyRam)
+
+When a page shows Python that students should run or change, make it a PyRam code box
+instead of static code. Load the script once in `<head>` and write the code in a
+`<pre class="pyram">` inside the page:
+
+```html
+<head>
+  <script src="https://pyram.socialshields.org/embed.js"></script>
+</head>
+
+<section class="slide">
+  <h2>Try it</h2>
+  <pre class="pyram" data-size="18">
+name = input("Your name: ")
+print("Hello,", name)
+  </pre>
+</section>
+```
+
+The `<pre>` becomes a box with an editor, Run, Stop, Reset and the output. Python runs in
+each student's own browser; nothing is synchronised, and edits are gone when the page is
+reopened.
+
+- Write `<` and `&` in the code as `&lt;` and `&amp;`. Indentation shared by every line is
+  removed, so the code may be indented with the HTML.
+- Options, as attributes on the `<pre>`: `data-size` (text size in px: 12, 13, 14, 16, 18,
+  20, 22, 24 or 28; use 18 or more for a projector), `data-height` (px, default fitted to
+  the number of lines, 240 to 640), `data-autorun` (run once when Python has loaded).
+- Code and output sit side by side, so give the box the page's full width and keep the code
+  short: about 15 lines at most, one idea per box.
+- One or two boxes on a page. Each box loads its own Python (a few seconds, longer the
+  first time), so do not turn every snippet in the deck into a box; use a plain `<pre>` for
+  code that is only read.
+- One file only. `input()`, `print()`, tracebacks and Matplotlib figures work, and the
+  packages that come with Pyodide (numpy, pandas, matplotlib, sympy, …) load on `import`.
+  Other PyPI packages and reading data files are not available.
+- `input()` re-runs the program from the top with the lines typed so far. Avoid printing
+  random numbers or the time before an `input()` in the same box.
+- It needs the network. If PyRam cannot be reached the `<pre>` stays as plain code, so the
+  page still reads correctly.
+- Do not use a box as a quiz: nothing a student runs is reported to the instructor. Follow
+  it with a `.quiz` when the result should be checked.
+
 ## Workflow
 
 1. **Get the content.** Use the material the user provides (slides, a chapter, notes). When
